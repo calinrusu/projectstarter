@@ -17,7 +17,7 @@ $publicPath = $basePath . '/public';
 $storagePath = $basePath . '/storage';
 $bootstrapFile = $appPath . '/bootstrap.php';
 
-function removeDir($target) {
+function removeDir(string $target): bool {
 	$directory = new RecursiveDirectoryIterator($target, FilesystemIterator::SKIP_DOTS);
 	$files = new RecursiveIteratorIterator($directory, RecursiveIteratorIterator::CHILD_FIRST);
 	foreach ($files as $file) {
@@ -28,6 +28,42 @@ function removeDir($target) {
 		}
 	}
 	rmdir($target);
+	return true;
+}
+
+function createApp(string $dir): bool {
+	global $appPath;
+	global $bootstrapFile;
+	if (!is_writable($dir)) {
+		return false;
+	} else {
+		mkdir($dir . '/config');
+		mkdir($dir . '/includes');
+		mkdir($dir . '/views');
+		mkdir($dir . '/views/layouts');
+		mkdir($dir . '/views/pages');
+		mkdir($dir . '/views/partials');
+		$bootstrapCode = '<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+require_once __DIR__ . \'/config/app.php\';
+require_once APP_PATH . \'/config/dbconn.php\';
+require_once APP_PATH . \'/includes/functions.php\';
+require_once APP_PATH . \'/includes/db.php\';
+require_once APP_PATH . \'/includes/csrf.php\';
+require_once APP_PATH . \'/includes/validation.php\';';
+		file_put_contents($bootstrapFile, $bootstrapCode);
+		$configAppCode = '<?php
+ini_set(\'display_errors\', 1);
+define(\'BASE_PATH\', dirname(dirname(__DIR__)));
+define(\'APP_PATH\', BASE_PATH . \'/app\');
+define(\'STORAGE_PATH\', BASE_PATH . \'/storage\');
+define(\'BASE_URL\', \'/http://localhost:8080\');
+define(\'ENVIRONMENT\', \'testing\');';
+		file_put_contents($appPath . '/config/app.php', $configAppCode);
+	}
+	return true;
 }
 
 if (count($argv) < 2) {
@@ -52,6 +88,7 @@ Available commands:
 	}
 	/* We are creating the new project structure */
 	mkdir($appPath, 0755);
+	createApp($appPath);
 	mkdir($publicPath, 0755);
 	mkdir($storagePath, 0755);
 } elseif ($argv['1'] === 'makepage') {
