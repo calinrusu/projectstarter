@@ -1,0 +1,99 @@
+<?php
+
+if (php_sapi_name() != 'cli') {
+	$message = 'You have to run this script from command line (php-cli).' . PHP_EOL;
+	exit($message);
+}
+
+$minPhpVersion = '8.2';
+if (version_compare(PHP_VERSION, $minPhpVersion, '<')) {
+	$message = 
+	exit($message);
+}
+
+$basePath = __DIR__;
+$appPath = $basePath . '/app';
+$publicPath = $basePath . '/public';
+$storagePath = $basePath . '/storage';
+$bootstrapFile = $appPath . '/bootstrap.php';
+
+function removeDir($target) {
+	$directory = new RecursiveDirectoryIterator($target, FilesystemIterator::SKIP_DOTS);
+	$files = new RecursiveIteratorIterator($directory, RecursiveIteratorIterator::CHILD_FIRST);
+	foreach ($files as $file) {
+		if (is_dir($file)) {
+			rmdir($file); 
+		} else {
+			unlink($file);
+		}
+	}
+	rmdir($target);
+}
+
+if (count($argv) < 2) {
+	$message = 'Nothing to here ... Run "php starter help" to list available arguments.' . PHP_EOL;
+	exit($message);
+}
+
+if ($argv['1'] == 'help') {
+	$message = '
+Available commands:
+	install - creates the directory and basic files structures for the new project.
+	makepage - requires a second argument, page name. It creates a new php page in the /public directory. E.g. "php starter makepage home" creates a page named home.php in the /public directory.
+	makeview - requires a second argument, view name. It creates a new php page in the /public directory and a corresponding view (output) in the /app/views directory. E.g. "php starter makeview home" creates a page named home.php in the /public directory and a view named home.php in the /app/views directory.
+';
+	echo sprintf($message);
+	exit;
+} elseif ($argv['1'] === 'install') {
+	/* We delete all the existing directories and files except our own script */
+	$dirs = array_diff(scandir($basePath), ['.', '..', basename(__FILE__)]);
+	foreach ($dirs as $key => $value) {
+		removeDir($basePath . '/' . $value);
+	}
+	/* We are creating the new project structure */
+	mkdir($appPath, 0755);
+	mkdir($publicPath, 0755);
+	mkdir($storagePath, 0755);
+} elseif ($argv['1'] === 'makepage') {
+	if (!isset($argv['2'])) {
+		$message = 'You have to specify the page name (only a-z A-Z 0-9 - and _)' . PHP_EOL;
+		exit($message);
+	}
+	if (preg_match('/[^a-zA-Z0-9\-\_]/', $argv['2'])) {
+		$message = 'The page name can only contain lowercase and uppercase letters, digits and - or _' . PHP_EOL;
+		exit($message);
+	}
+	if (!is_dir($appPath) || !is_dir($publicPath) || !file_exists($bootstrapFile)) {
+		$message = 'Your project structure does not exist or is incomplete! Please run "php starter install" to create the project structure!' . PHP_EOL;
+		exit($message);
+	}
+} elseif ($argv['1'] === 'makeview') {
+	if (!isset($argv['2'])) {
+		$message = 'You have to specify the page name (only a-z A-Z 0-9 - and _)' . PHP_EOL;
+		exit($message);
+	}
+	if (preg_match('/[^a-zA-Z0-9\-\_]/', $argv['2'])) {
+		$message = 'The page name can only contain lowercase and uppercase letters, digits and - or _' . PHP_EOL;
+		exit($message);
+	}
+	if (!is_dir($appPath) || !is_dir($publicPath) || !file_exists($bootstrapFile)) {
+		$message = 'Your project structure does not exist or is incomplete! Please run "php starter install" to create the project structure!' . PHP_EOL;
+		exit($message);
+	}
+} elseif ($argv['1'] === 'delete') {
+	echo 'Are you sure? This will delete the entire ' . $basePath . ' directory content and keep only the current script (' . __FILE__ . '). Type "yes" to confirm!' . PHP_EOL;
+	$handle = fopen('php://stdin', 'r');
+	$reply = fgets($handle);
+	if (trim($reply) != 'yes') {
+		exit('You did not confirm' . PHP_EOL);
+	}
+	fclose($handle);
+	$dirs = array_diff(scandir($basePath), ['.', '..', basename(__FILE__)]);
+	foreach ($dirs as $key => $value) {
+		removeDir($basePath . '/' . $value);
+	}	
+} else {
+	$message = 'Nothing to do here.' . PHP_EOL;
+	exit($message);
+}
+exit;
