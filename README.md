@@ -12,5 +12,28 @@ A simple script to create a starting structure for a web project.
 		starter.php
 		/app
 			bootstrap.php
+			/config
+				app.php
+				database.php
+			/includes
+				db.php
+				functions.php
+				csrf.php
+				validation.php
+			/lib
+			/views
+				/layouts
+					head.php
+					footer.php
+				/partials
+					navbar.php
+				/pages
+					home.php
 		/public
-			
+			index.php
+			/assets
+				/css
+					app.css
+				/js
+					app.js
+				/img
