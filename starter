@@ -47,21 +47,89 @@ function createApp(string $dir): bool {
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-require_once __DIR__ . \'/config/app.php\';
-require_once APP_PATH . \'/config/dbconn.php\';
-require_once APP_PATH . \'/includes/functions.php\';
-require_once APP_PATH . \'/includes/db.php\';
-require_once APP_PATH . \'/includes/csrf.php\';
-require_once APP_PATH . \'/includes/validation.php\';';
+require_once __DIR__ . "/config/app.php";
+require_once APP_PATH . "/config/database.php";
+require_once APP_PATH . "/includes/db.php";
+require_once APP_PATH . "/includes/functions.php";
+require_once APP_PATH . "/includes/csrf.php";
+require_once APP_PATH . "/includes/validation.php";';
 		file_put_contents($bootstrapFile, $bootstrapCode);
 		$configAppCode = '<?php
-ini_set(\'display_errors\', 1);
-define(\'BASE_PATH\', dirname(dirname(__DIR__)));
-define(\'APP_PATH\', BASE_PATH . \'/app\');
-define(\'STORAGE_PATH\', BASE_PATH . \'/storage\');
-define(\'BASE_URL\', \'/http://localhost:8080\');
-define(\'ENVIRONMENT\', \'testing\');';
+ini_set("display_errors", 1);
+define("BASE_PATH", dirname(dirname(__DIR__)));
+define("APP_PATH", BASE_PATH . "/app");
+define("STORAGE_PATH", BASE_PATH . "/storage");
+define("BASE_URL", "http://localhost:8080");
+define("ENVIRONMENT", "testing");';
 		file_put_contents($appPath . '/config/app.php', $configAppCode);
+		$configDbCode = '<?php
+define(DBHOST, "localhost");
+define(DBUSER, "myuser");
+define(DBPASS, "mypass");
+define(DBNAME, "mydb");
+define(DBCHARSET, "utf8mb4");';
+		file_put_contents($appPath . '/config/database.php', $configDbCode);
+		$includesDbCode = '<?php
+$dbh = new mysqli(DBHOST, DBUSER, DBPASS, DBNAME);
+if ($dbh->connect_errno) {
+	echo "Failed to connect to MySQL: " . $dbh->connect_error;
+	exit;
+}
+$dbh->set_charset(DBCHARSET);';
+		file_put_contents($appPath . '/includes/db.php', $includesDbCode);
+		$includesFunctionsCode = '<?php
+function setFlashdata(string $type, string $message): bool {
+	$_SESSION[\'flash\'] = [
+		\'type\' => $type,
+		\'message\' => $message
+	];
+	return true;
+}
+function displayFlashdata(): string {
+	$html = \'<div class="alert alert-\' . $type . \'">\' . $message . \'</div>\';
+	unset($_SESSION[\'flash\']);
+	return $html;
+}';
+		file_put_contents($appPath . '/includes/functions.php', $includesFunctionsCode);
+		$includesValidationCode = '<?php
+function validateEmail(string $email): bool {
+	return filter_var($email, FILTER_VALIDATE_EMAIL);
+}
+function sanitizeEmail(string $email): string {
+	$sanitized = filter_var($email, FILTER_SANITIZE_EMAIL);
+	return $sanitized;
+}
+function validatePassword(string $password): bool {
+	/* check if password has at least 8 characters, contains at least an uppercase letter, at least a lowercase letter and at least a digit */
+	if (strlen(trim($password)) < 8) {
+		return false;
+	} elseif (!preg_match(\'/[a-z]/\', $password)) {
+		return false;
+	} elseif (!preg_match(\'/[A-Z]/\', $password)) {
+		return false;
+	} elseif (!preg_match(\'/[^0-9]/\', $password)) {
+		return false;
+	} else {
+		return true;
+	}
+}';
+		file_put_contents($appPath . '/includes/validation.php', $includesValidationCode);
+		$includesCsrfCode = '<?php
+function csrfToken(): string {
+    if (!isset($_SESSION[\'csrf_token\']) || empty($_SESSION[\'csrf_token\'])) {
+        $_SESSION[\'csrf_token\'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION[\'csrf_token\'];
+}
+
+function csrfVerify(string $token): bool {
+    if (empty($_SESSION[\'csrf_token\']) || !is_string($token)) {
+        return false;
+    } else {
+    	return hash_equals($_SESSION[\'csrf_token\'], $token);
+    }
+}';
+		file_put_contents($appPath . '/includes/csrf.php', $includesCsrfCode);
 	}
 	return true;
 }
