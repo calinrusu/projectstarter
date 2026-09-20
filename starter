@@ -215,7 +215,7 @@ function send_email(string $to, string $subject, string $body): bool {
 		$viewsPartialsNavbarCode = '<?php
 /* /app/views/partials/navbar.php */
 ?>
-		<nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+		<nav class="navbar navbar-expand-sm bg-primary navbar-dark">
 			<div class="container-fluid">
 				<a class="navbar-brand" href="#">Logo</a>
 				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">
@@ -224,24 +224,24 @@ function send_email(string $to, string $subject, string $body): bool {
 				<div class="collapse navbar-collapse" id="collapsibleNavbar">
 					<ul class="navbar-nav">
 						<li class="nav-item">
-							<a class="nav-link" href="#">Link</a>
+							<a class="nav-link text-uppercase" href="#">Link</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="#">Link</a>
+							<a class="nav-link text-uppercase" href="#">Link</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="#">Link</a>
+							<a class="nav-link text-uppercase" href="#">Link</a>
 						</li>
 					</ul>
 				</div>
 			</div>
 		</nav>
 ';
-		file_put_contents($appPath . '/views/pages/navbar.php', $viewsPartialsNavbarCode);
+		file_put_contents($appPath . '/views/partials/navbar.php', $viewsPartialsNavbarCode);
 		$viewsPagesHomeCode = '<?php
 /* /app/views/pages/index.php */
 ?>
-		<div class="container">
+		<div class="container mt-5 mb-5">
 			<h1>This is your project\'s starting page</h1>
 		</div>
 ';
@@ -264,7 +264,7 @@ function createPublic(string $dir): bool {
 require_once __DIR__ . "/../app/bootstrap.php";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-	/* do something here when the request methid is POST */
+	/* do something here when the request method is POST */
 }
 
 require_once APP_PATH . "/views/layouts/head.php";
@@ -272,6 +272,20 @@ require_once APP_PATH . "/views/partials/navbar.php";
 require_once APP_PATH . "/views/pages/index.php";
 require_once APP_PATH . "/views/layouts/footer.php";';
 		file_put_contents($publicPath . '/index.php', $publicViewsIndexCode);
+		$publicAssetsCssCode = '/* /public/assets/css/app.css */
+
+.row {
+	margin-left: 0px !important;
+	margin-right: 0px !important;
+}
+.text-uppercase {
+	text-transform: uppercase;
+}
+';
+		file_put_contents($publicPath . '/assets/css/app.css', $publicAssetsCssCode);
+		$publicAssetsJsCode = '/* /public/assets/js/app.js */
+';
+		file_put_contents($publicPath . '/assets/js/app.js', $publicAssetsJsCode);
 		return true;
 	}
 }
