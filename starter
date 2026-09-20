@@ -318,16 +318,57 @@ Available commands:
 	mkdir($storagePath, 0755);
 } elseif ($argv['1'] === 'makepage') {
 	if (!isset($argv['2'])) {
-		$message = 'You have to specify the page name (only a-z A-Z 0-9 - and _)' . PHP_EOL;
+		$message = 'You have to specify the page name (only a-z A-Z 0-9 - _ . and / if you intend to create new directories)' . PHP_EOL;
 		exit($message);
 	}
-	if (preg_match('/[^a-zA-Z0-9\-\_]/', $argv['2'])) {
+	if (preg_match('/[^a-zA-Z0-9\-\_\/\.]/', $argv['2'])) {
 		$message = 'The page name can only contain lowercase and uppercase letters, digits and - or _' . PHP_EOL;
 		exit($message);
 	}
 	if (!is_dir($appPath) || !is_dir($publicPath) || !file_exists($bootstrapFile)) {
 		$message = 'Your project structure does not exist or is incomplete! Please run "php starter install" to create the project structure!' . PHP_EOL;
 		exit($message);
+	}
+	if (strstr($argv['2'], '/')) {
+		if (substr_count($argv['2'], '/') > 1) {
+			$message = 'Not creating more than one subdirectory. If you want to recurse deeper you will have to create the directory structure manually.' . PHP_EOL;
+			if (substr($argv['2'], 0, 1) === '/') {
+				$message .= 'Remove the first "/" please, we take the first word before the "/" as the directory.' . PHP_EOL;
+			}
+			exit($message);
+		} else {
+			$explode = explode('/', $argv['2']);
+			$pagename = preg_replace('/[^a-zA-Z0-9\-\_\.]/', '', str_replace('.php', '', end($explode)));
+			$topDirs = '';
+			$fullPath = $publicPath;
+			foreach ($explode as $key => $value) {
+				if (!empty($value) && str_replace('.php', '', $value) != $pagename) {
+					$topDirs .= '/..';
+					$fullPath .= '/' . $value;
+					mkdir($fullPath, 0755);
+				}
+			}
+			$newPageCode = '<?php
+
+	require_once __DIR__ . "' . $topDirs . '/../app/bootstrap.php";
+
+	if ($_SERVER["REQUEST_METHOD"] === "POST") {
+		/* do something here when the request method is POST */
+	}
+	';
+			file_put_contents($fullPath . '/' . $pagename . '.php', $newPageCode);
+		}
+	} else {
+		$pagename = preg_replace('/[^a-zA-Z0-9\-\_\.]/', '', str_replace('.php', '', $argv['2']));
+		$newPageCode = '<?php
+
+require_once __DIR__ . "/../app/bootstrap.php";
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+	/* do something here when the request method is POST */
+}
+';
+		file_put_contents($publicPath . '/' . $pagename . '.php', $newPageCode);
 	}
 } elseif ($argv['1'] === 'makeview') {
 	if (!isset($argv['2'])) {
