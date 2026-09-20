@@ -64,6 +64,7 @@ define("BASE_URL", "http://localhost:8080");
 define("ENVIRONMENT", "testing");';
 		file_put_contents($appPath . '/config/app.php', $configAppCode);
 		$configDbCode = '<?php
+define(DB_USE, 1); /* set DB_USE to 0 if your website does not need a MySQL database */
 define(DBHOST, "localhost");
 define(DBUSER, "myuser");
 define(DBPASS, "mypass");
@@ -71,12 +72,16 @@ define(DBNAME, "mydb");
 define(DBCHARSET, "utf8mb4");';
 		file_put_contents($appPath . '/config/database.php', $configDbCode);
 		$includesDbCode = '<?php
+if (DB_USE > 0):
+
 $dbh = new mysqli(DBHOST, DBUSER, DBPASS, DBNAME);
 if ($dbh->connect_errno) {
 	echo "Failed to connect to MySQL: " . $dbh->connect_error;
 	exit;
 }
-$dbh->set_charset(DBCHARSET);';
+$dbh->set_charset(DBCHARSET);
+
+endif;';
 		file_put_contents($appPath . '/includes/db.php', $includesDbCode);
 		$includesFunctionsCode = '<?php
 function setFlashdata(string $type, string $message): bool {
@@ -131,6 +136,52 @@ function csrfVerify(string $token): bool {
     }
 }';
 		file_put_contents($appPath . '/includes/csrf.php', $includesCsrfCode);
+		echo 'Do you want to include PHPMailer library for sending emails via SMTP? Type "yes" to confirm!' . PHP_EOL;
+		$handle = fopen('php://stdin', 'r');
+		$reply = fgets($handle);
+		if (trim($reply) === 'yes') {
+			mkdir($dir . '/lib/PHPMailer', 0755);
+			$Exception = file_get_contents("https://raw.githubusercontent.com/PHPMailer/PHPMailer/refs/heads/master/src/Exception.php");
+			file_put_contents($dir . '/lib/PHPMailer/Exception.php', $Exception);
+			$PHPMailer = file_get_contents("https://raw.githubusercontent.com/PHPMailer/PHPMailer/refs/heads/master/src/PHPMailer.php");
+			file_put_contents($dir . '/lib/PHPMailer/PHPMailer.php', $PHPMailer);
+			$SMTP = file_get_contents("https://raw.githubusercontent.com/PHPMailer/PHPMailer/refs/heads/master/src/SMTP.php");
+			file_put_contents($dir . '/lib/PHPMailer/SMTP.php', $SMTP);		
+			$includesSendEmailCode = '<?php
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\SMTP;
+function send_email(string $to, string $subject, string $body): bool {
+	require_once APP_PATH . \'/lib/PHPMailer/Exception.php\';
+	require_once APP_PATH . \'/lib/PHPMailer/PHPMailer.php\';
+	require_once APP_PATH . \'/lib/PHPMailer/SMTP.php\';
+	$mail = new PHPMailer(true);
+	try {
+		//$mail->SMTPDebug = SMTP::DEBUG_SERVER; /* uncomment this line to debug */
+		$mail->isSMTP();
+		$mail->Host       = "mail.yourmailserver.com";
+		$mail->SMTPAuth   = true;
+		$mail->Username   = "youruser@yourmailserver.com";
+		$mail->Password   = "yourmailpassword";
+		$mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+		$mail->Port       = 465;
+		$mail->setFrom("youremail@yourmailserver.com", "Your Email Name");
+		$mail->addAddress($to);
+		$mail->addReplyTo("replyto@youremail.com");
+		$mail->isHTML(true);
+		$mail->Subject = $subject;
+		$mail->Body    = $body;
+		$mail->send();
+		return true;
+	} catch (Exception $e) {
+		return false;
+	}
+}';
+			file_put_contents($appPath . '/includes/sendmail.php', $includesSendEmailCode);
+		} else {
+			echo 'Continuing without PHPMailer.' . PHP_EOL;
+		}
+		fclose($handle);
 		$viewsLayoutsHeadCode = '<?php
 /* /app/views/layouts/head.php */
 ?>
@@ -293,4 +344,5 @@ Available commands:
 	$message = 'Nothing to do here.' . PHP_EOL;
 	exit($message);
 }
+echo 'Done!' . PHP_EOL;
 exit;
