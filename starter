@@ -188,18 +188,19 @@ function csrfVerify(string $token): bool {
 ';
 		file_put_contents($appPath . '/views/pages/navbar.php', $viewsPartialsNavbarCode);
 		$viewsPagesHomeCode = '<?php
-/* /app/views/pages/home.php */
+/* /app/views/pages/index.php */
 ?>
 		<div class="container">
 			<h1>This is your project\'s starting page</h1>
 		</div>
 ';
-		file_put_contents($appPath . '/views/pages/home.php', $viewsPagesHomeCode);
+		file_put_contents($appPath . '/views/pages/index.php', $viewsPagesHomeCode);
 	}
 	return true;
 }
 
 function createPublic(string $dir): bool {
+	global $publicPath;
 	if (!is_writable($dir)) {
 		return false;
 	} else {
@@ -207,6 +208,19 @@ function createPublic(string $dir): bool {
 		mkdir($dir . '/assets/css', 0755);
 		mkdir($dir . '/assets/js', 0755);
 		mkdir($dir . '/assets/img', 0755);
+		$publicViewsIndexCode = '<?php
+
+require_once __DIR__ . "/../app/bootstrap.php";
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+	/* do something here when the request methid is POST */
+}
+
+require_once APP_PATH . "/views/layouts/head.php";
+require_once APP_PATH . "/views/partials/navbar.php";
+require_once APP_PATH . "/views/pages/index.php";
+require_once APP_PATH . "/views/layouts/footer.php";';
+		file_put_contents($publicPath . '/index.php', $publicViewsIndexCode);
 		return true;
 	}
 }

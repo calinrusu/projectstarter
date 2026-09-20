@@ -9,7 +9,7 @@ A simple script to create a starting structure for a web project.
 ## Project structure
 
 	/myproject
-		starter.php
+		starter
 		/app
 			bootstrap.php
 			/config
@@ -28,7 +28,7 @@ A simple script to create a starting structure for a web project.
 				/partials
 					navbar.php
 				/pages
-					home.php
+					index.php
 		/public
 			index.php
 			/assets
