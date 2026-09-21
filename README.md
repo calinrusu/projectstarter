@@ -63,8 +63,16 @@ cd into your new project directory and run the php starter script.
 	php starter makeview "yourpagename"
 
 	This will create yourpagename.php in the /public directory and the corresponding file in the /app/views/pages directory.
+	
+	php starter makeview "admin/index.php"
+	
+	This will create the subdirectory admin and a new page, index.php within the admin subdirectory and a subdirectory admin inside the /app/views/ directory and the new view index.php there. Only one subdirectory is permitted.
 - To create a new php page (script, no html output):
 
 	php starter makepage "yourscriptname"
 
 	This will create yourscriptname.php in the /public directory with all the requires but without including the /app/views component. It will only do php processing with no html output.
+	
+	php starter makepage "admin/index.php"
+	
+	This will create an admin subdirectory in the /public directory and the index.php page inside it. Only one subdirectory is permitted.

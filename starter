@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * Simple PHP web project starter
+ * PHP Version 8.2.
+ * @see       https://github.com/calinrusu/projectstarter/
+ * @author   Calin Rusu <clnrusu@gmail.com>
+**/
+
 if (php_sapi_name() != 'cli') {
 	$message = 'You have to run this script from command line (php-cli).' . PHP_EOL;
 	exit($message);
@@ -284,6 +291,19 @@ require_once APP_PATH . "/views/layouts/footer.php";';
 ';
 		file_put_contents($publicPath . '/assets/css/app.css', $publicAssetsCssCode);
 		$publicAssetsJsCode = '/* /public/assets/js/app.js */
+/* a confirmation function for links that delete stuff. Add class confirm and it will prompt if you are sure */
+document.addEventListener(\'click\', function(event) {
+	var confirmBtn = event.target.closest(\'.confirm\');
+	if (!confirmBtn) {
+		return;
+	}
+	event.preventDefault();
+	var myHref = confirmBtn.getAttribute(\'href\');
+	var myConfirm = window.confirm(\'Warning! This will permanently delete the selected resource, are you sure?\');
+	if (myConfirm === true) {
+		window.location.href = myHref;
+	}
+});
 ';
 		file_put_contents($publicPath . '/assets/js/app.js', $publicAssetsJsCode);
 		return true;
@@ -333,30 +353,23 @@ Available commands:
 		if (substr_count($argv['2'], '/') > 1) {
 			$message = 'Not creating more than one subdirectory. If you want to recurse deeper you will have to create the directory structure manually.' . PHP_EOL;
 			if (substr($argv['2'], 0, 1) === '/') {
-				$message .= 'Remove the first "/" please, we take the first word before the "/" as the directory.' . PHP_EOL;
+				$message .= 'Remove the first "/" from  please, we take the first word before the "/" as the directory.' . PHP_EOL;
 			}
 			exit($message);
 		} else {
 			$explode = explode('/', $argv['2']);
-			$pagename = preg_replace('/[^a-zA-Z0-9\-\_\.]/', '', str_replace('.php', '', end($explode)));
-			$topDirs = '';
-			$fullPath = $publicPath;
-			foreach ($explode as $key => $value) {
-				if (!empty($value) && str_replace('.php', '', $value) != $pagename) {
-					$topDirs .= '/..';
-					$fullPath .= '/' . $value;
-					mkdir($fullPath, 0755);
-				}
-			}
+			$dirname = preg_replace('/[^a-zA-Z0-9\-\_]/', '', $explode['0']);
+			$pagename = preg_replace('/[^a-zA-Z0-9\-\_\.]/', '', str_replace('.php', '', $explode['1']));
+			mkdir($publicPath . '/' . $dirname, 0755);
 			$newPageCode = '<?php
 
-	require_once __DIR__ . "' . $topDirs . '/../app/bootstrap.php";
+require_once __DIR__ . "/../../app/bootstrap.php";
 
-	if ($_SERVER["REQUEST_METHOD"] === "POST") {
-		/* do something here when the request method is POST */
-	}
-	';
-			file_put_contents($fullPath . '/' . $pagename . '.php', $newPageCode);
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+	/* do something here when the request method is POST */
+}
+';
+			file_put_contents($publicPath . '/' . $dirname . '/' . $pagename . '.php', $newPageCode);
 		}
 	} else {
 		$pagename = preg_replace('/[^a-zA-Z0-9\-\_\.]/', '', str_replace('.php', '', $argv['2']));
@@ -372,10 +385,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 	}
 } elseif ($argv['1'] === 'makeview') {
 	if (!isset($argv['2'])) {
-		$message = 'You have to specify the page name (only a-z A-Z 0-9 - and _)' . PHP_EOL;
+		$message = 'You have to specify the page name (only a-z A-Z 0-9 - _ . and / if you intend to create new directories)' . PHP_EOL;
 		exit($message);
 	}
-	if (preg_match('/[^a-zA-Z0-9\-\_]/', $argv['2'])) {
+	if (preg_match('/[^a-zA-Z0-9\-\_\/\.]/', $argv['2'])) {
 		$message = 'The page name can only contain lowercase and uppercase letters, digits and - or _' . PHP_EOL;
 		exit($message);
 	}
@@ -383,6 +396,67 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 		$message = 'Your project structure does not exist or is incomplete! Please run "php starter install" to create the project structure!' . PHP_EOL;
 		exit($message);
 	}
+	if (strstr($argv['2'], '/')) {
+		if (substr_count($argv['2'], '/') > 1) {
+			$message = 'Not creating more than one subdirectory. If you want to recurse deeper you will have to create the directory structure manually.' . PHP_EOL;
+			if (substr($argv['2'], 0, 1) === '/') {
+				$message .= 'Remove the first "/" please, we take the first word before the "/" as the directory.' . PHP_EOL;
+			}
+			exit($message);
+		} else {
+			$explode = explode('/', $argv['2']);
+			$dirname = preg_replace('/[^a-zA-Z0-9\-\_]/', '', $explode['0']);
+			$pagename = preg_replace('/[^a-zA-Z0-9\-\_\.]/', '', str_replace('.php', '', $explode['1']));
+			mkdir($publicPath . '/' . $dirname, 0755);
+			mkdir($appPath . '/views/' . $dirname, 0755);
+			$newPageCode = '<?php
+
+require_once __DIR__ . "/../../app/bootstrap.php";
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+	/* do something here when the request method is POST */
+}
+
+require_once APP_PATH . "/views/layouts/head.php";
+require_once APP_PATH . "/views/partials/navbar.php";
+require_once APP_PATH . "/views/' . $dirname . '/' . $pagename . '.php";
+require_once APP_PATH . "/views/layouts/footer.php";
+';
+			file_put_contents($publicPath . '/' . $dirname . '/' . $pagename . '.php', $newPageCode);
+			$newViewCode = '<?php
+/* /app/views/' . $dirname . '/' . $pagename . '.php */
+?>
+		<div class="container mt-5 mb-5">
+			<h1>This is your project\'s starting page</h1>
+		</div>
+';
+			file_put_contents($appPath . '/views/' . '/' . $dirname . '/' . $pagename . '.php', $newViewCode);
+		}
+	} else {
+		$pagename = preg_replace('/[^a-zA-Z0-9\-\_\.]/', '', str_replace('.php', '', $argv['2']));
+		$newPageCode = '<?php
+
+require_once __DIR__ . "/../app/bootstrap.php";
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+	/* do something here when the request method is POST */
+}
+
+require_once APP_PATH . "/views/layouts/head.php";
+require_once APP_PATH . "/views/partials/navbar.php";
+require_once APP_PATH . "/views/pages/' . $pagename . '.php";
+require_once APP_PATH . "/views/layouts/footer.php";
+';
+		file_put_contents($publicPath . '/' . $pagename . '.php', $newPageCode);
+		$newViewCode = '<?php
+/* /app/views/pages/' . $pagename . '.php */
+?>
+		<div class="container">
+			<h1>This is your project\'s starting page</h1>
+		</div>
+';
+		file_put_contents($appPath . '/views/pages/' . $pagename . '.php', $newViewCode);
+	}	
 } elseif ($argv['1'] === 'delete') {
 	echo 'Are you sure? This will delete the entire ' . $basePath . ' directory content and keep only the current script (' . __FILE__ . '). Type "yes" to confirm!' . PHP_EOL;
 	$handle = fopen('php://stdin', 'r');
@@ -391,10 +465,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 		exit('You did not confirm' . PHP_EOL);
 	}
 	fclose($handle);
-	$dirs = array_diff(scandir($basePath), ['.', '..', basename(__FILE__)]);
+	$dirs = array_diff(scandir($basePath), ['.', '..', basename(__FILE__), 'README.md', 'LICENSE']);
 	foreach ($dirs as $key => $value) {
 		removeDir($basePath . '/' . $value);
-	}	
+	}
 } else {
 	$message = 'Nothing to do here.' . PHP_EOL;
 	exit($message);
