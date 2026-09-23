@@ -71,12 +71,12 @@ define("BASE_URL", "http://localhost:8080");
 define("ENVIRONMENT", "testing");';
 		file_put_contents($appPath . '/config/app.php', $configAppCode);
 		$configDbCode = '<?php
-define(DB_USE, 1); /* set DB_USE to 0 if your website does not need a MySQL database */
-define(DBHOST, "localhost");
-define(DBUSER, "myuser");
-define(DBPASS, "mypass");
-define(DBNAME, "mydb");
-define(DBCHARSET, "utf8mb4");';
+define("DB_USE", 1); /* set DB_USE to 0 if your website does not need a MySQL database */
+define("DBHOST", "localhost");
+define("DBUSER", "myuser");
+define("DBPASS", "mypass");
+define("DBNAME", "mydb");
+define("DBCHARSET", "utf8mb4");';
 		file_put_contents($appPath . '/config/database.php', $configDbCode);
 		$includesDbCode = '<?php
 if (DB_USE > 0):
