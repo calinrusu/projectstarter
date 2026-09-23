@@ -197,8 +197,14 @@ function send_email(string $to, string $subject, string $body): bool {
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0">
-		<title>My Project Title</title>
-		<meta name="description" content="My Project Description">
+		<title><?php if (isset($meta["title"])) { echo $meta["title"]; } ?></title>
+		<meta name="description" content="<?php if (isset($meta["description"])) { echo $meta["description"]; } ?>">
+		<meta name="keywords" content="<?php if (isset($meta["keywords"])) { echo $meta["keywords"]; } ?>">
+		<meta name="og:type" content="<?php if (isset($meta["type"])) { echo $meta["type"]; } ?>">
+		<meta name="og:url" content="<?php if (isset($meta["url"])) { echo $meta["url"]; } ?>">
+		<meta name="og:title" content="<?php if (isset($meta["title"])) { echo $meta["title"]; } ?>">
+		<meta name="og:description" content="<?php if (isset($meta["description"])) { echo $meta["description"]; } ?>">
+		<meta name="og:image" content="<?php if (isset($meta["image"])) { echo $meta["image"]; } ?>">
 		<meta name="robots" content="index,follow">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -273,6 +279,15 @@ require_once __DIR__ . "/../app/bootstrap.php";
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 	/* do something here when the request method is POST */
 }
+
+$meta = [
+	"title" => "My Project",
+	"description" => "Some description",
+	"keywords" => "",
+	"type" => "website",
+	"url" => BASE_URL,
+	"image" => ""
+];
 
 require_once APP_PATH . "/views/layouts/head.php";
 require_once APP_PATH . "/views/partials/navbar.php";
@@ -417,6 +432,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 	/* do something here when the request method is POST */
 }
 
+$meta = [
+	"title" => "My Project",
+	"description" => "Some description",
+	"keywords" => "",
+	"type" => "website",
+	"url" => BASE_URL,
+	"image" => ""
+];
+
 require_once APP_PATH . "/views/layouts/head.php";
 require_once APP_PATH . "/views/partials/navbar.php";
 require_once APP_PATH . "/views/' . $dirname . '/' . $pagename . '.php";
@@ -441,6 +465,15 @@ require_once __DIR__ . "/../app/bootstrap.php";
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 	/* do something here when the request method is POST */
 }
+
+$meta = [
+	"title" => "My Project",
+	"description" => "Some description",
+	"keywords" => "",
+	"type" => "website",
+	"url" => BASE_URL,
+	"image" => ""
+];
 
 require_once APP_PATH . "/views/layouts/head.php";
 require_once APP_PATH . "/views/partials/navbar.php";
