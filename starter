@@ -422,8 +422,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 			$explode = explode('/', $argv['2']);
 			$dirname = preg_replace('/[^a-zA-Z0-9\-\_]/', '', $explode['0']);
 			$pagename = preg_replace('/[^a-zA-Z0-9\-\_\.]/', '', str_replace('.php', '', $explode['1']));
-			mkdir($publicPath . '/' . $dirname, 0755);
-			mkdir($appPath . '/views/' . $dirname, 0755);
+			if (!is_dir($publicPath . '/' . $dirname)) {
+				mkdir($publicPath . '/' . $dirname, 0755);
+			}
+			if (!is_dir($appPath . '/views/' . $dirname)) {
+				mkdir($appPath . '/views/' . $dirname, 0755);
+			}
 			$newPageCode = '<?php
 
 require_once __DIR__ . "/../../app/bootstrap.php";
